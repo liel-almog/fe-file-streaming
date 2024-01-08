@@ -1,26 +1,55 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import classes from "./upload-files.module.scss";
 import { faArrowUpFromBracket, faFileUpload } from "@fortawesome/free-solid-svg-icons";
-import { Button, Upload } from "antd";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Button, Upload, UploadProps } from "antd";
+import { UploadService } from "../../services/upload.service";
+import classes from "./upload-files.module.scss";
 const { Dragger } = Upload;
 
 export interface UploadFilesProps {}
 
 export const UploadFiles = () => {
+  const handleCustomRequest: UploadProps["customRequest"] = async ({
+    file,
+    onSuccess,
+    onError,
+  }) => {
+    try {
+      let uploadFile: File;
+      console.log(file instanceof File, "is file");
+      if (file instanceof File) {
+        uploadFile = file;
+      } else {
+        uploadFile = new File([new Blob([file])], "file");
+      }
+
+      const res = await UploadService.uploadFile(uploadFile);
+
+      if (onSuccess) {
+        onSuccess(res);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (onError) {
+          onError(error);
+        }
+      }
+    }
+  };
+
   return (
     <section className={classes.container}>
       <h2>Upload your files</h2>
-      <Dragger className={classes.uploadingSection} multiple>
+      <Dragger customRequest={handleCustomRequest} className={classes.uploadingSection} multiple>
         <p className="ant-upload-drag-icon">
           <FontAwesomeIcon color="grey" size="3x" icon={faArrowUpFromBracket} />
         </p>
         <article className="ant-upload-text">
           <p>Drag 'n' drop some files here, or click to select files</p>
           <br />
-          <Button size="large" icon={<FontAwesomeIcon size="lg" icon={faFileUpload} />}>
-            Upload
-          </Button>
         </article>
+        <Button size="large" icon={<FontAwesomeIcon size="lg" icon={faFileUpload} />}>
+          Upload
+        </Button>
       </Dragger>
     </section>
   );
