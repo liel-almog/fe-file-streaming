@@ -38,9 +38,8 @@ export class UploadService {
     const SIZE = file.size;
     const CHUNKS_COUNT = Math.ceil(SIZE / CHUNK_SIZE);
     const { data } = await axiosInstance.post(`/${PREFIX}/chunk/start`, {
-      name: file.name,
+      fileName: file.name,
       size: SIZE,
-      chunks: CHUNKS_COUNT,
     });
 
     const { id } = startUploadSchema.parse(data);
