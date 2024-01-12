@@ -1,14 +1,11 @@
-import { AxiosResponse } from "axios";
 import { startUploadSchema } from "../models/upload.model";
 import { axiosInstance } from "./index.service";
 
 const PREFIX = "upload" as const;
 
 export class UploadService {
-  static async uploadFile(file: File) {
-    const { id, CHUNKS_COUNT, CHUNK_SIZE } = await UploadService.startUpload(file);
-
-    const uploadPromises: Promise<AxiosResponse>[] = [];
+  async uploadFile(file: File) {
+    const { id, CHUNKS_COUNT, CHUNK_SIZE } = await this.startUpload(file);
 
     const upload = (chunkIndex: number) => {
       const formData = new FormData();
@@ -26,14 +23,13 @@ export class UploadService {
     };
 
     for (let chunkIndex = 0; chunkIndex < CHUNKS_COUNT; chunkIndex++) {
-      uploadPromises.push(upload(chunkIndex));
+      await upload(chunkIndex);
     }
 
-    const res = await Promise.all(uploadPromises);
-    return res;
+    await this.completeUpload(id);
   }
 
-  static async startUpload(file: File) {
+  private async startUpload(file: File) {
     const CHUNK_SIZE = 1024 * 1024; // 1MB
     const SIZE = file.size;
     const CHUNKS_COUNT = Math.ceil(SIZE / CHUNK_SIZE);
@@ -46,4 +42,10 @@ export class UploadService {
 
     return { id, CHUNK_SIZE, CHUNKS_COUNT };
   }
+
+  private async completeUpload(id: number) {
+    await axiosInstance.post(`/${PREFIX}/chunk/complete/${id}`);
+  }
 }
+
+export const uploadService = new UploadService();

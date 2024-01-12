@@ -1,7 +1,7 @@
 import { faArrowUpFromBracket, faFileUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Upload, UploadProps } from "antd";
-import { UploadService } from "../../services/upload.service";
+import { uploadService } from "../../services/upload.service";
 import classes from "./upload-files.module.scss";
 const { Dragger } = Upload;
 
@@ -22,10 +22,12 @@ export const UploadFiles = () => {
         uploadFile = new File([new Blob([file])], "file");
       }
 
-      const res = await UploadService.uploadFile(uploadFile);
+      await uploadService.uploadFile(uploadFile);
 
       if (onSuccess) {
-        onSuccess(res);
+        onSuccess({
+          status: "success",
+        });
       }
     } catch (error) {
       if (error instanceof Error) {
